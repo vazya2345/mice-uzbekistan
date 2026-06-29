@@ -21,6 +21,11 @@ $config = [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
     ],
+    'modules' => [
+        'hotels' => [
+            'class' => 'app\modules\hotels\Module',
+        ],
+    ],
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
@@ -47,14 +52,16 @@ $config = [
             ],
         ],
         'db' => $db,
-        /*
         'urlManager' => [
             'enablePrettyUrl' => true,
-            'showScriptName' => false,
-            'rules' => [
+            'showScriptName'  => false,
+            'rules'           => [
+                // ── ADD THIS for clean hotel URLs ─────────────────
+                'hotels'          => 'hotels/hotel/index',
+                'hotels/<action>' => 'hotels/hotel/<action>',
+                // ─────────────────────────────────────────────────
             ],
         ],
-        */
     ],
     'params' => $params,
 ];

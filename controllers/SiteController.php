@@ -1,33 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
 namespace app\controllers;
 
 use Yii;
-use app\models\ContactForm;
-use app\models\LoginForm;
-use yii\captcha\CaptchaAction;
 use yii\filters\AccessControl;
-use yii\filters\VerbFilter;
-use yii\base\Security;
-use yii\mail\MailerInterface;
 use yii\web\Controller;
-use yii\web\ErrorAction;
 use yii\web\Response;
+use yii\filters\VerbFilter;
+use app\models\LoginForm;
+use app\models\ContactForm;
 
+/**
+ * Site controller
+ */
 class SiteController extends Controller
 {
-    public function __construct(
-        $id,
-        $module,
-        private readonly MailerInterface $mailer,
-        private readonly Security $security,
-        $config = [],
-    ) {
-        parent::__construct($id, $module, $config);
-    }
-
     /**
      * {@inheritdoc}
      */
@@ -36,17 +23,17 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['logout'],
+                'only'  => ['logout'],
                 'rules' => [
                     [
                         'actions' => ['logout'],
-                        'allow' => true,
-                        'roles' => ['@'],
+                        'allow'   => true,
+                        'roles'   => ['@'],
                     ],
                 ],
             ],
             'verbs' => [
-                'class' => VerbFilter::class,
+                'class'   => VerbFilter::class,
                 'actions' => [
                     'logout' => ['post'],
                 ],
@@ -60,21 +47,13 @@ class SiteController extends Controller
     public function actions(): array
     {
         return [
-            'error' => [
-                'class' => ErrorAction::class,
-            ],
-            'captcha' => [
-                'class' => CaptchaAction::class,
-                'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
-                'transparent' => true,
-            ],
+            'error'   => ['class' => 'yii\web\ErrorAction'],
+            'captcha' => ['class' => 'yii\captcha\CaptchaAction', 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null],
         ];
     }
 
     /**
-     * Displays homepage.
-     *
-     * @return string
+     * Homepage — MICE Uzbekistan landing page.
      */
     public function actionIndex(): string
     {
@@ -82,9 +61,7 @@ class SiteController extends Controller
     }
 
     /**
-     * Login action.
-     *
-     * @return Response|string
+     * Login page.
      */
     public function actionLogin(): Response|string
     {
@@ -92,9 +69,9 @@ class SiteController extends Controller
             return $this->goHome();
         }
 
-        $model = new LoginForm($this->security);
+        $model = new LoginForm();
 
-        if ($model->load($this->request->post()) && $model->login()) {
+        if ($model->load(Yii::$app->request->post()) && $model->login()) {
             return $this->goBack();
         }
 
@@ -105,38 +82,22 @@ class SiteController extends Controller
 
     /**
      * Logout action.
-     *
-     * @return Response
      */
     public function actionLogout(): Response
     {
         Yii::$app->user->logout();
-
         return $this->goHome();
     }
 
     /**
-     * Displays contact page.
-     *
-     * @return Response|string
+     * Contact page.
      */
     public function actionContact(): Response|string
     {
         $model = new ContactForm();
 
-        $contact = $model->load($this->request->post()) && $model->contact(
-            $this->mailer,
-            Yii::$app->params['adminEmail'],
-            Yii::$app->params['senderEmail'],
-            Yii::$app->params['senderName'],
-        );
-
-        if ($contact) {
-            Yii::$app->session->setFlash(
-                'success',
-                'Thank you for contacting us. We will respond to you as soon as possible.',
-            );
-
+        if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
+            Yii::$app->session->setFlash('contactFormSubmitted');
             return $this->refresh();
         }
 
@@ -144,9 +105,7 @@ class SiteController extends Controller
     }
 
     /**
-     * Displays about page.
-     *
-     * @return string
+     * About page.
      */
     public function actionAbout(): string
     {
